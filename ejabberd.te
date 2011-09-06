@@ -1,0 +1,143 @@
+policy_module(ejabberd,1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+type ejabberd_t;
+type ejabberd_exec_t;
+domain_type(ejabberd_t)
+init_daemon_domain(ejabberd_t, ejabberd_exec_t)
+
+type ejabberd_script_exec_t;
+init_script_file(ejabberd_script_exec_t)
+
+type ejabberd_tmp_t;
+files_tmp_file(ejabberd_tmp_t)
+
+type ejabberd_rw_t;
+files_type(ejabberd_rw_t)
+
+type ejabberd_log_t;
+logging_log_file(ejabberd_log_t)
+
+type ejabberd_etc_rw_t;
+files_type(ejabberd_etc_rw_t)
+
+########################################
+#
+# ejabberd local policy
+#
+
+# Init script handling
+domain_use_interactive_fds(ejabberd_t)
+
+## internal communication is often done using fifo and unix sockets.
+allow ejabberd_t self:fifo_file rw_file_perms;
+allow ejabberd_t self:unix_stream_socket create_stream_socket_perms;
+
+files_read_etc_files(ejabberd_t)
+
+libs_use_ld_so(ejabberd_t)
+libs_use_shared_libs(ejabberd_t)
+
+miscfiles_read_localization(ejabberd_t)
+
+ifdef(`targeted_policy',`
+	term_dontaudit_use_unallocated_ttys(ejabberd_t)
+	term_dontaudit_use_generic_ptys(ejabberd_t)
+')
+
+
+allow ejabberd_t ejabberd_tmp_t:file manage_file_perms;
+allow ejabberd_t ejabberd_tmp_t:dir create_dir_perms;
+files_tmp_filetrans(ejabberd_t,ejabberd_tmp_t, { file dir })
+
+allow ejabberd_t ejabberd_rw_t:file manage_file_perms;
+allow ejabberd_t ejabberd_rw_t:dir create_dir_perms;
+
+manage_dirs_pattern(ejabberd_t, ejabberd_log_t,  ejabberd_log_t)
+manage_files_pattern(ejabberd_t, ejabberd_log_t,  ejabberd_log_t)
+logging_log_filetrans(ejabberd_t, ejabberd_log_t, { file dir } )
+
+allow ejabberd_t ejabberd_etc_rw_t:file manage_file_perms;
+allow ejabberd_t ejabberd_etc_rw_t:dir manage_dir_perms;
+files_etc_filetrans(ejabberd_t,ejabberd_etc_rw_t, { file dir })
+
+sysnet_dns_name_resolve(ejabberd_t)
+corenet_all_recvfrom_unlabeled(ejabberd_t)
+
+allow ejabberd_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_all_if(ejabberd_t)
+corenet_tcp_sendrecv_all_nodes(ejabberd_t)
+corenet_tcp_sendrecv_all_ports(ejabberd_t)
+corenet_tcp_bind_all_nodes(ejabberd_t)
+corenet_tcp_bind_all_ports(ejabberd_t)
+corenet_tcp_connect_all_ports(ejabberd_t)
+
+auth_use_nsswitch(ejabberd_t)
+
+logging_send_syslog_msg(ejabberd_t)
+
+auth_domtrans_chk_passwd(ejabberd_t)
+
+logging_send_audit_msgs(ejabberd_t)
+
+mta_send_mail(ejabberd_t)
+
+require {
+	type ejabberd_rw_t;
+	type setfiles_t;
+	class lnk_file relabelto;
+	class dir relabelto;
+	class file relabelto;
+}
+
+#============= setfiles_t ==============
+allow setfiles_t ejabberd_rw_t:dir relabelto;
+allow setfiles_t ejabberd_rw_t:file relabelto;
+allow setfiles_t ejabberd_rw_t:lnk_file relabelto;
+
+require {
+	type ejabberd_rw_t;
+	type ejabberd_t;
+	class process { execmem signal };
+	class file { execute execute_no_trans };
+	class dir read;
+}
+
+#============= ejabberd_t ==============
+allow ejabberd_t ejabberd_rw_t:dir read;
+allow ejabberd_t ejabberd_rw_t:file { execute execute_no_trans };
+allow ejabberd_t self:process { execmem signal };
+corecmd_exec_shell(ejabberd_t)
+corecmd_read_bin_symlinks(ejabberd_t)
+dev_list_sysfs(ejabberd_t)
+files_manage_mounttab(ejabberd_t)
+kernel_read_system_state(ejabberd_t)
+
+require {
+	type restorecon_t;
+	type ejabberd_rw_t;
+	class lnk_file relabelto;
+	class dir relabelto;
+	class file relabelto;
+}
+
+#============= restorecon_t ==============
+allow restorecon_t ejabberd_rw_t:dir relabelto;
+allow restorecon_t ejabberd_rw_t:file relabelto;
+allow restorecon_t ejabberd_rw_t:lnk_file relabelto;
+
+# poprawki juz bastylii
+require {
+        type httpd_sys_content_t;
+        type ejabberd_t;
+        type src_t;
+        class dir { search read getattr };
+}
+
+#============= ejabberd_t ==============
+allow ejabberd_t httpd_sys_content_t:dir { read search getattr };
+allow ejabberd_t src_t:dir { read search getattr };

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Install SELinux policy modules
+for selinuxvariant in mls strict targeted
+  do
+    /usr/sbin/semodule -s ${selinuxvariant} -i \
+      /usr/share/selinux/${selinuxvariant}/ejabberd.pp &> /dev/null || :
+  done
+
+# Relabel ejabberd's files
+/sbin/restorecon -F -R -v /usr/bin/erl
+/sbin/restorecon -F -R -v /etc/rc.d/init.d/ejabberd
+/sbin/restorecon -F -R -v /usr/lib/erlang
+/sbin/restorecon -F -R -v /var/log/ejabberd
+/sbin/restorecon -F -R -v /etc/ejabberd
+/sbin/restorecon -F -R -v /usr/lib/ejabberd
+/sbin/restorecon -F -R -v /etc/jabber
+
+/sbin/ldconfig

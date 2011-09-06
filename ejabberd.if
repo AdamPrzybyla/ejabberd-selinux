@@ -1,0 +1,396 @@
+
+## <summary>policy for ejabberd</summary>
+
+########################################
+## <summary>
+##	Execute a domain transition to run ejabberd.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`ejabberd_domtrans',`
+	gen_require(`
+		type ejabberd_t;
+                type ejabberd_exec_t;
+	')
+
+	domtrans_pattern($1,ejabberd_exec_t,ejabberd_t)
+')
+
+
+########################################
+## <summary>
+##	Execute ejabberd server in the ejabberd domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	The type of the process performing this action.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_script_domtrans',`
+	gen_require(`
+		type ejabberd_script_exec_t;
+	')
+
+	init_script_domtrans_spec($1,ejabberd_script_exec_t)
+')
+
+########################################
+## <summary>
+##	Do not audit attempts to read, 
+##	ejabberd tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to not audit.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_dontaudit_read_tmp_files',`
+	gen_require(`
+		type ejabberd_tmp_t;
+	')
+
+	dontaudit $1 ejabberd_tmp_t:file read_file_perms;
+')
+
+########################################
+## <summary>
+##	Allow domain to read, ejabberd tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to not audit.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_read_tmp_files',`
+	gen_require(`
+		type ejabberd_tmp_t;
+	')
+
+	allow $1 ejabberd_tmp_t:file read_file_perms;
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ejabberd tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to not audit.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_manage_tmp',`
+	gen_require(`
+		type ejabberd_tmp_t;
+	')
+
+         manage_dirs_pattern($1,ejabberd_tmp_t,ejabberd_tmp_t)
+         manage_files_pattern($1,ejabberd_tmp_t,ejabberd_tmp_t)
+         manage_lnk_files_pattern($1,ejabberd_tmp_t,ejabberd_tmp_t)
+')
+
+########################################
+## <summary>
+##	Search ejabberd rw directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_search_rw_dir',`
+	gen_require(`
+		type ejabberd_rw_t;
+	')
+
+	allow $1 ejabberd_rw_t:dir search_dir_perms;
+	files_search_rw($1)
+')
+
+########################################
+## <summary>
+##	Read ejabberd rw files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_read_rw_files',`
+	gen_require(`
+		type ejabberd_rw_t;
+	')
+
+	allow $1 ejabberd_rw_t:file r_file_perms;
+	allow $1 ejabberd_rw_t:dir list_dir_perms;
+	files_search_rw($1)
+')
+
+########################################
+## <summary>
+##	Create, read, write, and delete
+##	ejabberd rw files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_manage_rw_files',`
+	gen_require(`
+		type ejabberd_rw_t;
+	')
+
+	allow $1 ejabberd_rw_t:file manage_file_perms;
+	allow $1 ejabberd_rw_t:dir rw_dir_perms;
+')
+
+########################################
+## <summary>
+##	Manage ejabberd rw files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_manage_rw',`
+	gen_require(`
+		type ejabberd_rw_t;
+	')
+
+         manage_dirs_pattern($1,ejabberd_rw_t,ejabberd_rw_t)
+         manage_files_pattern($1,ejabberd_rw_t,ejabberd_rw_t)
+         manage_lnk_files_pattern($1,ejabberd_rw_t,ejabberd_rw_t)
+')
+
+
+########################################
+## <summary>
+##	Allow the specified domain to read ejabberd's log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`ejabberd_read_log',`
+	gen_require(`
+		type ejabberd_log_t;
+	')
+
+	logging_search_logs($1)
+        read_files_pattern($1, ejabberd_log_t, ejabberd_log_t)
+')
+
+########################################
+## <summary>
+##	Allow the specified domain to append
+##	ejabberd log files.
+## </summary>
+## <param name="domain">
+## 	<summary>
+##	Domain allowed to transition.
+## 	</summary>
+## </param>
+#
+interface(`ejabberd_append_log',`
+	gen_require(`
+		type var_log_t, ejabberd_log_t;
+	')
+
+	logging_search_logs($1)
+        append_files_pattern($1, ejabberd_log_t, ejabberd_log_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ejabberd log files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to not audit.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_manage_log',`
+	gen_require(`
+		type ejabberd_log_t;
+	')
+
+         manage_dirs_pattern($1,ejabberd_log_t,ejabberd_log_t)
+         manage_files_pattern($1,ejabberd_log_t,ejabberd_log_t)
+         manage_lnk_files_pattern($1,ejabberd_log_t,ejabberd_log_t)
+')
+
+########################################
+## <summary>
+##	Search ejabberd conf directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_search_conf',`
+	gen_require(`
+		type ejabberd_etc_rw_t;
+	')
+
+	allow $1 ejabberd_etc_rw_t:dir search_dir_perms;
+	files_search_etc($1)
+')
+
+########################################
+## <summary>
+##	Read ejabberd conf files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_read_conf_files',`
+	gen_require(`
+		type ejabberd_etc_rw_t;
+	')
+
+	allow $1 ejabberd_etc_rw_t:file r_file_perms;
+	allow $1 ejabberd_etc_rw_t:dir list_dir_perms;
+	files_search_etc($1)
+')
+
+########################################
+## <summary>
+##	Create, read, write, and delete
+##	ejabberd conf files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_manage_conf_files',`
+	gen_require(`
+		type ejabberd_etc_rw_t;
+	')
+
+        manage_files_pattern($1,ejabberd_etc_rw_t,ejabberd_etc_rw_t)
+	files_search_etc($1)
+')
+
+########################################
+## <summary>
+##	Manage ejabberd etc_rw files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_manage_conf',`
+	gen_require(`
+		type ejabberd_etc_rw_t;
+	')
+
+         manage_dirs_pattern($1,ejabberd_etc_rw_t,ejabberd_etc_rw_t)
+         manage_files_pattern($1,ejabberd_etc_rw_t,ejabberd_etc_rw_t)
+         manage_lnk_files_pattern($1,ejabberd_etc_rw_t,ejabberd_etc_rw_t)
+')
+
+
+########################################
+## <summary>
+##	Execute ejabberd in the ejabberd domain, and
+##	allow the specified role the ejabberd domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	The role to be allowed the ejabberd domain.
+##	</summary>
+## </param>
+## <param name="terminal">
+##	<summary>
+##	The type of the role's terminal.
+##	</summary>
+## </param>
+#
+interface(`ejabberd_run',`
+	gen_require(`
+		type ejabberd_t;
+	')
+
+	ejabberd_domtrans($1)
+	role $2 types ejabberd_t;
+	dontaudit ejabberd_t $3:chr_file rw_term_perms;
+')
+
+
+########################################
+## <summary>
+##	All of the rules required to administrate 
+##	an ejabberd environment
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	The role to be allowed to manage the syslog domain.
+##	</summary>
+## </param>
+## <param name="terminal">
+##	<summary>
+##	The type of the user terminal.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`ejabberd_admin',`
+	gen_require(`
+		type ejabberd_t;
+	')
+
+	allow $1 ejabberd_t:process { ptrace signal_perms getattr };
+	read_files_pattern($1, ejabberd_t, ejabberd_t)
+	        
+
+	# Allow ejabberd_t to restart the apache service
+	ejabberd_script_domtrans($1)
+	domain_system_change_exemption($1)
+	role_transition $2 ejabberd_script_exec_t system_r;
+	allow $2 system_r;
+
+	ejabberd_manage_tmp($1)
+
+	ejabberd_manage_rw($1)
+
+	ejabberd_manage_log($1)
+
+	ejabberd_manage_conf($1)
+
+')
